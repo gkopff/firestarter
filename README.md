@@ -1,6 +1,6 @@
 firestarter
 ===========
 
-♬ I'm the trouble starter, _friendly_ instigator. ♬
+♬ I'm the überjar starter, _friendly_ instigator. ♬
 
 Instigate your überjars
