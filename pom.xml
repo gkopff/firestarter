@@ -185,7 +185,7 @@
     <dependency>                               <!-- Guava -->
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>17</version>
+      <version>17.0</version>
     </dependency>
   </dependencies>
 
