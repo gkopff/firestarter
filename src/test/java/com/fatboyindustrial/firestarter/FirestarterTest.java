@@ -50,7 +50,8 @@ public class FirestarterTest
 
     final String line = Firestarter.process(locator, config.getName(), config.getParameters(), config.getJvms().get(0));
     final String expected =
-        "java -server -Xms128M -Xmx128M -Dfirestarter.vmname=TestJvm1 -jar /home/yossarian/target1-0.0.1-SNAPSHOT.jar";
+        "java -server -Xms128M -Xmx128M -Dfirestarter.vmname=TestJvm1 -jar /home/yossarian/target1-0.0.1-SNAPSHOT.jar" +
+        " -switch value -option verbose";
 
     assertThat(line, is(expected));
   }

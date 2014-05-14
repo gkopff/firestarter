@@ -116,6 +116,8 @@ public class Firestarter
                 .map(Path::toString)
                 .orElseThrow(() -> new FileNotFoundException(vm.getJar())));
 
+    cmd.addAll(vm.getArguments());
+
     return cmd.stream().collect(Collectors.joining(" "));
   }
 
