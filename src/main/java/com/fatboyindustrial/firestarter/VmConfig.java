@@ -23,6 +23,7 @@
 
 package com.fatboyindustrial.firestarter;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
 
@@ -33,6 +34,9 @@ import java.util.List;
  */
 public class VmConfig
 {
+  /** The minimum memory size (in MB) for a VM. */
+  public static final int MIN_VM_SIZE = 64;
+
   /** The VM name. */
   private String name;
 
@@ -80,5 +84,16 @@ public class VmConfig
   public ImmutableList<String> getArguments()
   {
     return ImmutableList.copyOf(this.arguments);
+  }
+
+  /**
+   * Validates the configuration.
+   * @throws IllegalArgumentException If the configuration is invalid.
+   */
+  protected void validate() throws IllegalArgumentException
+  {
+    Preconditions.checkArgument(this.name.indexOf(' ') == - 1, "VmConfig.name cannot contain spaces");
+    Preconditions.checkArgument(this.heap >= MIN_VM_SIZE, "VmConfig.heap must be >= " + MIN_VM_SIZE);
+    Preconditions.checkArgument(this.jar.indexOf(' ') == - 1, "VmConfig.jar cannot contain spaces");
   }
 }

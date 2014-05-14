@@ -23,6 +23,7 @@
 
 package com.fatboyindustrial.firestarter;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
@@ -49,11 +50,15 @@ public class FirestarterConfig
    * Creates a firestarter config.
    * @param reader The reader from which to source the JSON.
    * @return The firestarter configuration object.
+   * @throws IllegalArgumentException If the configuration contains errors.
    */
-  public static FirestarterConfig fromJson(final Reader reader)
+  public static FirestarterConfig fromJson(final Reader reader) throws IllegalArgumentException
   {
     final Gson gson = new Gson();
-    return gson.fromJson(reader, FirestarterConfig.class);
+    final FirestarterConfig cfg =  gson.fromJson(reader, FirestarterConfig.class);
+
+    cfg.validate();
+    return cfg;
   }
 
   /**
@@ -81,5 +86,16 @@ public class FirestarterConfig
   public ImmutableList<VmConfig> getJvms()
   {
     return ImmutableList.copyOf(this.jvms);
+  }
+
+  /**
+   * Validates the configuration.
+   * @throws IllegalArgumentException If the configuration is invalid.
+   */
+  private void validate() throws IllegalArgumentException
+  {
+    Preconditions.checkArgument(this.name.indexOf(' ') == -1, "FirestarterConfig.name cannot contain spaces");
+
+    this.jvms.stream().forEach(VmConfig::validate);
   }
 }

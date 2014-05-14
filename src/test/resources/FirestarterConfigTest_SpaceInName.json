@@ -1,0 +1,15 @@
+{
+  "name": "test with spaces",
+  "parameters": {
+    "VERSION": "0.0.1-SNAPSHOT"
+  },
+
+  "jvms": [
+    {
+      "name": "TestJvm1",
+      "heap": 128,
+      "jar": "target1-${VERSION}.jar",
+      "args": [ ]
+    }
+  ]
+}
