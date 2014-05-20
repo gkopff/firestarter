@@ -76,7 +76,7 @@ public class Firestarter
     }
     catch (FileNotFoundException e)
     {
-      System.err.println("Input file not found");
+      System.err.println("File not found; " + e);
       System.exit(1);
     }
     catch (IOException e)
