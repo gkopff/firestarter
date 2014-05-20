@@ -114,7 +114,7 @@ public class Firestarter
     cmd.add("-jar");
     cmd.add(locator.locate(resolve(params, vm.getJar()))
                 .map(Path::toString)
-                .orElseThrow(() -> new FileNotFoundException(vm.getJar())));
+                .orElseThrow(() -> new FileNotFoundException(resolve(params, vm.getJar()))));
 
     cmd.addAll(vm.getArguments());
 
