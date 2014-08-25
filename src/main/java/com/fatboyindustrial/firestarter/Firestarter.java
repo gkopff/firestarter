@@ -25,6 +25,7 @@ package com.fatboyindustrial.firestarter;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
+import com.typesafe.config.ConfigFactory;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -35,7 +36,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -61,11 +61,11 @@ public class Firestarter
       System.exit(1);
     }
 
-    final String json = args[0];
+    final String dotConf = args[0];
 
-    try (final BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(json), Charsets.UTF_8)))
+    try (final BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(dotConf), Charsets.UTF_8)))
     {
-      final FirestarterConfig cfg = FirestarterConfig.fromJson(br);
+      final FirestarterConfig cfg = FirestarterConfig.fromConfig(ConfigFactory.parseReader(br));
       final JarLocator locator = new DepthFirstJarLocator(
           getEnvironmentVariable(FS_ROOT)
               .map(Paths::get)
@@ -73,7 +73,7 @@ public class Firestarter
 
       for (final VmConfig vm : cfg.getJvms())
       {
-        System.out.println(process(locator, cfg.getName(), cfg.getParameters(), vm));
+        System.out.println(process(locator, cfg.getName(), vm));
       }
     }
     catch (FileNotFoundException e)
@@ -92,7 +92,6 @@ public class Firestarter
    * Process a single VM.
    * @param locator The jar locator.
    * @param configName The overarching configuration name.
-   * @param params The parameter substitution keys and values.
    * @param vm The VM details.
    * @return The command line.
    * @throws FileNotFoundException If the jar file cannot be found.
@@ -100,7 +99,6 @@ public class Firestarter
   @VisibleForTesting
   protected static String process(final JarLocator locator,
                                   @SuppressWarnings("UnusedParameters") final String configName,
-                                  final Map<String, String> params,
                                   final VmConfig vm) throws FileNotFoundException
   {
     final List<String> cmd = new ArrayList<>();
@@ -111,34 +109,17 @@ public class Firestarter
     cmd.add(String.format("-Xms%dM", vm.getHeap()));
     cmd.add(String.format("-Xmx%dM", vm.getHeap()));
 
-    cmd.add(String.format("-Dfirestarter.vmname=%s", resolve(params, vm.getName())));
+    cmd.add(String.format("-Dfirestarter.vmname=%s", vm.getName()));
 
     cmd.add("-jar");
-    cmd.add(locator.locate(resolve(params, vm.getJar()))
-                .map(Path::toString)
-                .orElseThrow(() -> new FileNotFoundException(resolve(params, vm.getJar()))));
+    cmd.add(
+        locator.locate(vm.getJar())
+            .map(Path::toString)
+            .orElseThrow(() -> new FileNotFoundException(vm.getJar())));
 
     cmd.addAll(vm.getArguments());
 
     return cmd.stream().collect(Collectors.joining(" "));
-  }
-
-  /**
-   * Performs parameter substitution for the given text.
-   * @param params The parameter substitution keys and values.
-   * @param text The text to transform.
-   * @return The text with any parameters substituted with their values.
-   */
-  private static String resolve(final Map<String, String> params, final String text)
-  {
-    String transformed = text;
-
-    for (final Map.Entry<String, String> entry : params.entrySet())
-    {
-      transformed = transformed.replace("${" + entry.getKey() + "}", entry.getValue());
-    }
-
-    return transformed;
   }
 
   /**
@@ -156,7 +137,7 @@ public class Firestarter
    */
   private static void usage()
   {
-    System.err.println("fs.sh <json>");
+    System.err.println("fs.sh <config>");
     System.err.println("Environment variable '" + FS_ROOT + "' must be set to the jar search root directory.");
   }
 }

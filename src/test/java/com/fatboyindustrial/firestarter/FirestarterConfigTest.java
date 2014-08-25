@@ -23,12 +23,8 @@
 
 package com.fatboyindustrial.firestarter;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableSet;
+import com.typesafe.config.ConfigFactory;
 import org.junit.Test;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -39,19 +35,15 @@ import static org.junit.Assert.assertThat;
 public class FirestarterConfigTest
 {
   /**
-   * Tests that the JSON deserialises correctly.
+   * Tests that the HOCON deserialises correctly.
    */
   @Test
-  public void testFromJson()
+  public void testFromHocon()
   {
-    final FirestarterConfig config = FirestarterConfig.fromJson(reader("/FirestarterConfigTest_FromJson.json"));
+    final FirestarterConfig config = FirestarterConfig.fromConfig(
+        ConfigFactory.parseResourcesAnySyntax("FirestarterConfigTest_FromConfig.conf"));
 
     assertThat(config.getName(), is("test"));
-    assertThat(config.getParameters().size(), is(2));
-
-    assertThat(config.getParameters().keySet().containsAll(ImmutableSet.of("VERSION", "VARIANT")), is(true));
-    assertThat(config.getParameters().values().containsAll(ImmutableSet.of("0.0.1-SNAPSHOT", "Z")), is(true));
-
     assertThat(config.getJvms().size(), is(2));
 
     VmConfig vm;
@@ -59,18 +51,18 @@ public class FirestarterConfigTest
     vm = config.getJvms().get(0);
     assertThat(vm.getName(), is("TestJvm1"));
     assertThat(vm.getHeap(), is(128));
-    assertThat(vm.getJar(), is("target1-${VERSION}.jar"));
+    assertThat(vm.getJar(), is("target1-0.0.1-SNAPSHOT.jar"));
     assertThat(vm.getArguments().isEmpty(), is(true));
 
     vm = config.getJvms().get(1);
     assertThat(vm.getName(), is("TestJvm2"));
     assertThat(vm.getHeap(), is(64));
-    assertThat(vm.getJar(), is("target2-${VERSION}-${VARIANT}.jar"));
+    assertThat(vm.getJar(), is("target2-0.0.1-SNAPSHOT-Z.jar"));
     assertThat(vm.getArguments().size(), is(4));
     assertThat(vm.getArguments().get(0), is("-switch"));
     assertThat(vm.getArguments().get(1), is("value"));
     assertThat(vm.getArguments().get(2), is("-variant"));
-    assertThat(vm.getArguments().get(3), is("${VARIANT}"));
+    assertThat(vm.getArguments().get(3), is("Z"));
   }
 
   /**
@@ -79,16 +71,6 @@ public class FirestarterConfigTest
   @Test(expected = IllegalArgumentException.class)
   public void testSpaceInName()
   {
-    FirestarterConfig.fromJson(reader("/FirestarterConfigTest_SpaceInName.json"));
-  }
-
-  /**
-   * Gets a resource from the classpath.
-   * @param resource The path of the resource.
-   * @return A reader pointing to the resource.
-   */
-  private static BufferedReader reader(final String resource)
-  {
-    return new BufferedReader(new InputStreamReader(FirestarterConfig.class.getResourceAsStream(resource), Charsets.UTF_8));
+    FirestarterConfig.fromConfig(ConfigFactory.parseResourcesAnySyntax("FirestarterConfigTest_SpaceInName.conf"));
   }
 }

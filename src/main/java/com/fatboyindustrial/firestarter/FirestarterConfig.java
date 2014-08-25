@@ -25,12 +25,11 @@ package com.fatboyindustrial.firestarter;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
+import com.typesafe.config.Config;
 
-import java.io.Reader;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * The outermost configuration object.
@@ -38,27 +37,51 @@ import java.util.Map;
 public class FirestarterConfig
 {
   /** The configuration name. */
-  private String name;
-
-  /** Variable substitution parameters. */
-  private Map<String, String> parameters;
+  private final String name;
 
   /** VM details. */
-  private List<VmConfig> jvms;
+  private final ImmutableList<VmConfig> jvms;
 
   /**
-   * Creates a firestarter config.
-   * @param reader The reader from which to source the JSON.
-   * @return The firestarter configuration object.
-   * @throws IllegalArgumentException If the configuration contains errors.
+   * Constructor.
+   * @param name The configuration name.
+   * @param jvms The JVM configuration details.
    */
-  public static FirestarterConfig fromJson(final Reader reader) throws IllegalArgumentException
+  public FirestarterConfig(final String name, final List<VmConfig> jvms)
   {
-    final Gson gson = new Gson();
-    final FirestarterConfig cfg =  gson.fromJson(reader, FirestarterConfig.class);
+    Preconditions.checkNotNull(name, "name cannot be null");
+    Preconditions.checkNotNull(jvms, "jvms cannot be null");
 
-    cfg.validate();
-    return cfg;
+    Preconditions.checkArgument(name.indexOf(' ') == -1, "FirestarterConfig.name cannot contain spaces");
+
+    this.name = name;
+    this.jvms = ImmutableList.copyOf(jvms);
+  }
+
+  /**
+   * Creates a firestarter config from the given HOCON configuration.
+   * @param hocon The HOCON configuration.
+   * @return The firestarter config.
+   * @throws IllegalArgumentException If the configuration is invalid.
+   */
+  public static FirestarterConfig fromConfig(final Config hocon) throws IllegalArgumentException
+  {
+    Preconditions.checkNotNull(hocon, "hocon cannot be null");
+
+    final Config resolved = hocon.resolve();
+    final Config jvms = resolved.getConfig("jvms");
+
+    final List<String> vmKeys = jvms.entrySet().stream()
+        .map(Map.Entry::getKey)
+        .map(str -> str.substring(0, str.indexOf('.')))
+        .distinct()
+        .collect(Collectors.toList());
+
+    return new FirestarterConfig(
+        resolved.getString("name"),
+        vmKeys.stream()
+            .map(key -> VmConfig.fromConfig(key, jvms.getConfig(key)))
+            .collect(Collectors.toList()));
   }
 
   /**
@@ -71,31 +94,11 @@ public class FirestarterConfig
   }
 
   /**
-   * Gets the variable substitution parameters.
-   * @return The parameters.
-   */
-  public ImmutableMap<String, String> getParameters()
-  {
-    return ImmutableMap.copyOf(this.parameters);
-  }
-
-  /**
    * Gets the JVM configurations.
    * @return The JVM configurations.
    */
   public ImmutableList<VmConfig> getJvms()
   {
-    return ImmutableList.copyOf(this.jvms);
-  }
-
-  /**
-   * Validates the configuration.
-   * @throws IllegalArgumentException If the configuration is invalid.
-   */
-  private void validate() throws IllegalArgumentException
-  {
-    Preconditions.checkArgument(this.name.indexOf(' ') == -1, "FirestarterConfig.name cannot contain spaces");
-
-    this.jvms.stream().forEach(VmConfig::validate);
+    return this.jvms;
   }
 }
