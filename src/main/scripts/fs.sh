@@ -49,12 +49,12 @@ if [ $# -ne 1 ]; then
   echo "Usage: $0 config"
   exit 1
 fi
-JSON=$1
-SESSION=`basename $JSON .json`
+CONF=$1
+SESSION=`basename $CONF .json`
 
 set -f                                           # globbing off
 
-DIRECTIVES="`java -Xms64M -Xmx64M -jar $FS_JAR $JSON`"
+DIRECTIVES="`java -Xms64M -Xmx64M -jar $FS_JAR $CONF`"
 if [ $? -ne 0 ]; then
   exit 1
 fi

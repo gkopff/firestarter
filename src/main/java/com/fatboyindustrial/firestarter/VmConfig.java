@@ -25,7 +25,7 @@ package com.fatboyindustrial.firestarter;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.gson.annotations.SerializedName;
+import com.typesafe.config.Config;
 
 import java.util.List;
 
@@ -37,18 +37,63 @@ public class VmConfig
   /** The minimum memory size (in MB) for a VM. */
   public static final int MIN_VM_SIZE = 64;
 
+  /** One megabyte. */
+  @SuppressWarnings("MagicNumber")
+  private static final int MEGABYTES = 1024 * 1024;
+
   /** The VM name. */
-  private String name;
+  private final String name;
 
   /** The heap size in MB. */
-  private int heap;
+  private final int heap;
 
   /** The jar file. */
-  private String jar;
+  private final String jar;
 
   /** Command line arguments. */
-  @SerializedName("args")
-  private List<String> arguments;
+  private final ImmutableList<String> arguments;
+
+  /**
+   * Constructor.
+   * @param name The VM name.
+   * @param heap The heap size in MB.
+   * @param jar The jar file.
+   * @param arguments Command line arguments.
+   */
+  public VmConfig(final String name, final int heap, final String jar, final List<String> arguments)
+  {
+    Preconditions.checkNotNull(name, "name cannot be null");
+    Preconditions.checkNotNull(jar, "jar cannot be null");
+    Preconditions.checkNotNull(arguments, "arguments cannot be null");
+
+    Preconditions.checkArgument(name.indexOf(' ') == - 1, "VmConfig.name cannot contain spaces");
+    Preconditions.checkArgument(heap >= MIN_VM_SIZE, "VmConfig.heap must be >= " + MIN_VM_SIZE + " but was: " + heap);
+    Preconditions.checkArgument(jar.indexOf(' ') == - 1, "VmConfig.jar cannot contain spaces");
+
+    this.name = name;
+    this.heap = heap;
+    this.jar = jar;
+    this.arguments = ImmutableList.copyOf(arguments);
+  }
+
+  /**
+   * Creates a VM config from the given HOCON configuration.
+   * @param name The configuration name.
+   * @param vmConfig The configuration.
+   * @return The VM config.
+   * @throws IllegalArgumentException If the configuration is invalid.
+   */
+  public static VmConfig fromConfig(final String name, final Config vmConfig) throws IllegalArgumentException
+  {
+    Preconditions.checkNotNull(name, "name cannot be null");
+    Preconditions.checkNotNull(vmConfig, "vmConfig cannot be null");
+
+    return new VmConfig(
+        name,
+        vmConfig.getBytes("heap").intValue() / MEGABYTES,
+        vmConfig.getString("jar"),
+        vmConfig.getStringList("args"));
+  }
 
   /**
    * Gets the VM name.
@@ -83,17 +128,6 @@ public class VmConfig
    */
   public ImmutableList<String> getArguments()
   {
-    return ImmutableList.copyOf(this.arguments);
-  }
-
-  /**
-   * Validates the configuration.
-   * @throws IllegalArgumentException If the configuration is invalid.
-   */
-  protected void validate() throws IllegalArgumentException
-  {
-    Preconditions.checkArgument(this.name.indexOf(' ') == - 1, "VmConfig.name cannot contain spaces");
-    Preconditions.checkArgument(this.heap >= MIN_VM_SIZE, "VmConfig.heap must be >= " + MIN_VM_SIZE);
-    Preconditions.checkArgument(this.jar.indexOf(' ') == - 1, "VmConfig.jar cannot contain spaces");
+    return this.arguments;
   }
 }
