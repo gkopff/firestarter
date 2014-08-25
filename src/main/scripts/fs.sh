@@ -50,7 +50,7 @@ if [ $# -ne 1 ]; then
   exit 1
 fi
 CONF=$1
-SESSION=`basename $CONF .json`
+SESSION=`basename $CONF .conf`
 
 set -f                                           # globbing off
 
