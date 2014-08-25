@@ -46,6 +46,9 @@ import java.util.stream.Collectors;
  */
 public class Firestarter
 {
+  /** The environment variable name that points to the root search directory. */
+  private static final String FS_ROOT = "FS_ROOT";
+
   /**
    * Main method.
    * @param args Command line arguments: JSON file.
@@ -58,16 +61,15 @@ public class Firestarter
       System.exit(1);
     }
 
-    final String rootVar = args[0];
-    final String json = args[1];
+    final String json = args[0];
 
     try (final BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(json), Charsets.UTF_8)))
     {
       final FirestarterConfig cfg = FirestarterConfig.fromJson(br);
       final JarLocator locator = new DepthFirstJarLocator(
-          getEnvironmentVariable(rootVar)
+          getEnvironmentVariable(FS_ROOT)
               .map(Paths::get)
-              .orElseThrow(() -> new IOException(rootVar + " is not set")));
+              .orElseThrow(() -> new IOException(FS_ROOT + " is not set")));
 
       for (final VmConfig vm : cfg.getJvms())
       {
@@ -97,7 +99,7 @@ public class Firestarter
    */
   @VisibleForTesting
   protected static String process(final JarLocator locator,
-                                  final String configName,
+                                  @SuppressWarnings("UnusedParameters") final String configName,
                                   final Map<String, String> params,
                                   final VmConfig vm) throws FileNotFoundException
   {
@@ -154,6 +156,7 @@ public class Firestarter
    */
   private static void usage()
   {
-    System.err.println("fs.sh <root env name> <json>");
+    System.err.println("fs.sh <json>");
+    System.err.println("Environment variable '" + FS_ROOT + "' must be set to the jar search root directory.");
   }
 }

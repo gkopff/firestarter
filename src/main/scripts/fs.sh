@@ -45,17 +45,16 @@ if [ -z "$FS_JAR" ]; then
   exit 1
 fi
 
-if [ $# -ne 2 ]; then
-  echo "Usage: $0 rootEnv config"
+if [ $# -ne 1 ]; then
+  echo "Usage: $0 config"
   exit 1
 fi
-ROOT_ENV=$1
-JSON=$2
+JSON=$1
 SESSION=`basename $JSON .json`
 
 set -f                                           # globbing off
 
-DIRECTIVES="`java -Xms64M -Xmx64M -jar $FS_JAR $ROOT_ENV $JSON`"
+DIRECTIVES="`java -Xms64M -Xmx64M -jar $FS_JAR $JSON`"
 if [ $? -ne 0 ]; then
   exit 1
 fi
