@@ -55,7 +55,7 @@ public class Firestarter
    */
   public static void main(final String[] args)
   {
-    if (args.length != 2)
+    if (args.length != 1)
     {
       usage();
       System.exit(1);
