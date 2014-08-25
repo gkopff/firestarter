@@ -99,7 +99,7 @@ public class Firestarter
    */
   @VisibleForTesting
   protected static String process(final JarLocator locator,
-                                  final String configName,
+                                  @SuppressWarnings("UnusedParameters") final String configName,
                                   final Map<String, String> params,
                                   final VmConfig vm) throws FileNotFoundException
   {
