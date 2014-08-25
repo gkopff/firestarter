@@ -53,6 +53,9 @@ public class FirestarterConfigTest
     assertThat(vm.getHeap(), is(128));
     assertThat(vm.getJar(), is("target1-0.0.1-SNAPSHOT.jar"));
     assertThat(vm.getArguments().isEmpty(), is(true));
+    assertThat(vm.getProperties().size(), is(2));
+    assertThat(vm.getProperties().get("java.io.tmpdir"), is("/partition2/tmp"));
+    assertThat(vm.getProperties().get("my.application.property"), is("Z"));
 
     vm = config.getJvms().get(1);
     assertThat(vm.getName(), is("TestJvm2"));
@@ -63,6 +66,7 @@ public class FirestarterConfigTest
     assertThat(vm.getArguments().get(1), is("value"));
     assertThat(vm.getArguments().get(2), is("-variant"));
     assertThat(vm.getArguments().get(3), is("Z"));
+    assertThat(vm.getProperties().size(), is(0));
   }
 
   /**
