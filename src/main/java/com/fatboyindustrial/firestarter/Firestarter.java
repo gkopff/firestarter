@@ -55,7 +55,7 @@ public class Firestarter
    */
   public static void main(final String[] args)
   {
-    if (args.length != 2)
+    if (args.length != 1)
     {
       usage();
       System.exit(1);
@@ -110,6 +110,11 @@ public class Firestarter
     cmd.add(String.format("-Xmx%dM", vm.getHeap()));
 
     cmd.add(String.format("-Dfirestarter.vmname=%s", vm.getName()));
+
+    cmd.addAll(
+        vm.getProperties().entrySet().stream()
+            .map(entry -> String.format("\"-D%s=%s\"", entry.getKey(), entry.getValue()))
+            .collect(Collectors.toList()));
 
     cmd.add("-jar");
     cmd.add(

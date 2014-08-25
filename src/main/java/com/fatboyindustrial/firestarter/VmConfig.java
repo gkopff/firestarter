@@ -25,9 +25,13 @@ package com.fatboyindustrial.firestarter;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Maps;
 import com.typesafe.config.Config;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Configuration information for a single JVM.
@@ -53,18 +57,27 @@ public class VmConfig
   /** Command line arguments. */
   private final ImmutableList<String> arguments;
 
+  /** JVM properties. */
+  private final ImmutableSortedMap<String, String> properties;
+
   /**
    * Constructor.
    * @param name The VM name.
    * @param heap The heap size in MB.
    * @param jar The jar file.
    * @param arguments Command line arguments.
+   * @param properties JVM properties.
    */
-  public VmConfig(final String name, final int heap, final String jar, final List<String> arguments)
+  public VmConfig(final String name,
+                  final int heap,
+                  final String jar,
+                  final List<String> arguments,
+                  final Map<String, String> properties)
   {
     Preconditions.checkNotNull(name, "name cannot be null");
     Preconditions.checkNotNull(jar, "jar cannot be null");
     Preconditions.checkNotNull(arguments, "arguments cannot be null");
+    Preconditions.checkNotNull(properties, "properties cannot be null");
 
     Preconditions.checkArgument(name.indexOf(' ') == - 1, "VmConfig.name cannot contain spaces");
     Preconditions.checkArgument(heap >= MIN_VM_SIZE, "VmConfig.heap must be >= " + MIN_VM_SIZE + " but was: " + heap);
@@ -74,6 +87,7 @@ public class VmConfig
     this.heap = heap;
     this.jar = jar;
     this.arguments = ImmutableList.copyOf(arguments);
+    this.properties = ImmutableSortedMap.copyOf(properties);
   }
 
   /**
@@ -92,7 +106,10 @@ public class VmConfig
         name,
         vmConfig.getBytes("heap").intValue() / MEGABYTES,
         vmConfig.getString("jar"),
-        vmConfig.getStringList("args"));
+        vmConfig.getStringList("args"),
+        vmConfig.hasPath("properties")
+            ? Maps.transformValues(vmConfig.getObject("properties").unwrapped(), String::valueOf)
+            : ImmutableMap.of());
   }
 
   /**
@@ -129,5 +146,14 @@ public class VmConfig
   public ImmutableList<String> getArguments()
   {
     return this.arguments;
+  }
+
+  /**
+   * Gets the JVM properties.
+   * @return The JVM properties.
+   */
+  public ImmutableSortedMap<String, String> getProperties()
+  {
+    return this.properties;
   }
 }
