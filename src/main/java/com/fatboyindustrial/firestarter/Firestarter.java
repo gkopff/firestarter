@@ -111,6 +111,11 @@ public class Firestarter
 
     cmd.add(String.format("-Dfirestarter.vmname=%s", vm.getName()));
 
+    cmd.addAll(
+        vm.getProperties().entrySet().stream()
+            .map(entry -> String.format("\"-D%s=%s\"", entry.getKey(), entry.getValue()))
+            .collect(Collectors.toList()));
+
     cmd.add("-jar");
     cmd.add(
         locator.locate(vm.getJar())
