@@ -104,7 +104,7 @@ public class VmConfig
 
     return new VmConfig(
         name,
-        vmConfig.getBytes("heap").intValue() / MEGABYTES,
+        (int) (vmConfig.getBytes("heap") / MEGABYTES),
         vmConfig.getString("jar"),
         vmConfig.getStringList("args"),
         vmConfig.hasPath("properties")
