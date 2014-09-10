@@ -105,6 +105,7 @@ public class Firestarter
 
     cmd.add("java");
     cmd.add("-server");
+    cmd.add("-XX:+UseConcMarkSweepGC");
     cmd.add("-XX:+HeapDumpOnOutOfMemoryError");
     cmd.add(String.format("-XX:HeapDumpPath=%s", getEnvironmentVariable(FS_ROOT)));
 
