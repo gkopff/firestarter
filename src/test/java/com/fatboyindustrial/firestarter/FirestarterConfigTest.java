@@ -26,6 +26,8 @@ package com.fatboyindustrial.firestarter;
 import com.typesafe.config.ConfigFactory;
 import org.junit.Test;
 
+import java.nio.file.Paths;
+
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -56,6 +58,7 @@ public class FirestarterConfigTest
     assertThat(vm.getProperties().size(), is(2));
     assertThat(vm.getProperties().get("java.io.tmpdir"), is("/partition2/tmp"));
     assertThat(vm.getProperties().get("my.application.property"), is("Z"));
+    assertThat(vm.getAgentPath().get(), is(Paths.get("/opt/yjp/bin/linux-x86-64/libyjpagent.so")));
 
     vm = config.getJvms().get(1);
     assertThat(vm.getName(), is("TestJvm2"));
@@ -67,6 +70,7 @@ public class FirestarterConfigTest
     assertThat(vm.getArguments().get(2), is("-variant"));
     assertThat(vm.getArguments().get(3), is("Z"));
     assertThat(vm.getProperties().size(), is(0));
+    assertThat(vm.getAgentPath().isPresent(), is(false));
   }
 
   /**

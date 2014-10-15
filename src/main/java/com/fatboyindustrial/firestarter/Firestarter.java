@@ -105,6 +105,9 @@ public class Firestarter
 
     cmd.add("java");
     cmd.add("-server");
+
+    vm.getAgentPath().ifPresent(p -> cmd.add(String.format("-agentpath:%s", p.toString())));
+
     cmd.add("-XX:+UseConcMarkSweepGC");
     cmd.add("-XX:+HeapDumpOnOutOfMemoryError");
 

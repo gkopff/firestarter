@@ -30,8 +30,11 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.typesafe.config.Config;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Configuration information for a single JVM.
@@ -60,6 +63,9 @@ public class VmConfig
   /** JVM properties. */
   private final ImmutableSortedMap<String, String> properties;
 
+  /** Profiling agent path. */
+  private final Optional<Path> agentPath;
+
   /**
    * Constructor.
    * @param name The VM name.
@@ -72,12 +78,14 @@ public class VmConfig
                   final int heap,
                   final String jar,
                   final List<String> arguments,
-                  final Map<String, String> properties)
+                  final Map<String, String> properties,
+                  final Optional<Path> agentPath)
   {
     Preconditions.checkNotNull(name, "name cannot be null");
     Preconditions.checkNotNull(jar, "jar cannot be null");
     Preconditions.checkNotNull(arguments, "arguments cannot be null");
     Preconditions.checkNotNull(properties, "properties cannot be null");
+    Preconditions.checkNotNull(agentPath, "agentPath cannot be null");
 
     Preconditions.checkArgument(name.indexOf(' ') == - 1, "VmConfig.name cannot contain spaces");
     Preconditions.checkArgument(heap >= MIN_VM_SIZE, "VmConfig.heap must be >= " + MIN_VM_SIZE + " but was: " + heap);
@@ -88,6 +96,7 @@ public class VmConfig
     this.jar = jar;
     this.arguments = ImmutableList.copyOf(arguments);
     this.properties = ImmutableSortedMap.copyOf(properties);
+    this.agentPath = agentPath;
   }
 
   /**
@@ -109,7 +118,10 @@ public class VmConfig
         vmConfig.getStringList("args"),
         vmConfig.hasPath("properties")
             ? Maps.transformValues(vmConfig.getObject("properties").unwrapped(), String::valueOf)
-            : ImmutableMap.of());
+            : ImmutableMap.of(),
+        vmConfig.hasPath("agentPath")
+            ? Optional.of(Paths.get(vmConfig.getString("agentPath")))
+            : Optional.empty());
   }
 
   /**
@@ -155,5 +167,14 @@ public class VmConfig
   public ImmutableSortedMap<String, String> getProperties()
   {
     return this.properties;
+  }
+
+  /**
+   * Gets the agent path.
+   * @return The agent path, if defined.
+   */
+  public Optional<Path> getAgentPath()
+  {
+    return this.agentPath;
   }
 }
