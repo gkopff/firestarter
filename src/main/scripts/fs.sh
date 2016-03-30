@@ -2,7 +2,7 @@
 
 # Firestarter
 #
-# Copyright 2014 Greg Kopff
+# Copyright 2014-2016 Greg Kopff
 # All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -59,20 +59,25 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-tmux has-session -t $SESSION                     # 0: sessions exist; 1: sessions don't exist
+mkdir -p /tmp/firestarter
+
+tmux has-session -t $SESSION                                         # 0: sessions exist; 1: sessions don't exist
 if (( $? == 1 )); then
   echo "Creating new session for $SESSION"
-  tmux new -s $SESSION -d                        # create a new session and detach
-  tmux set -t $SESSION set-remain-on-exit on     # don't remove exited processes
+  tmux new -s $SESSION -d                                            # create a new session and detach
+  tmux set -t $SESSION set-remain-on-exit on                         # don't remove exited processes
 fi
 
-setToNewline                                     # for directive processing, split by newine
+setToNewline                                                         # for directive processing, split by newine
 for DIRECTIVE in $DIRECTIVES; do
-  setToNormal                                    # return to default field separation
+  setToNormal                                                        # return to default field separation
 
   echo "Directive: $DIRECTIVE"
-  tmux new-window -aP -t $SESSION "$DIRECTIVE"   # execute directive in a new tmux window
+  echo $DIRECTIVE > /tmp/firestarter/$SESSION.sh
+  chmod +x /tmp/firestarter/$SESSION.sh
+  tmux new-window -aP -t $SESSION "sh /tmp/firestarter/$SESSION.sh"  # execute directive in a new tmux window
+  sleep 7
 
-  setToNewline                                   # (prepare for next directive)
+  setToNewline                                                       # (prepare for next directive)
 done
-setToNormal                                      # (clean up)
+setToNormal                                                          # (clean up)
